@@ -17,28 +17,18 @@
 
 static uint32_t msTicks = 0;
 static uint8_t buf[10];
+static int x = 0;
+// Initial value passed to timer
+static int32_t t = 10;
+
+static uint32_t RTC_godziny = 12;
+static uint32_t RTC_minuty = 59;
+static uint32_t RTC_sekundy = 55;
 
 #define NOTE_PIN_HIGH() GPIO_SetValue(0, 1 << 26);
 #define NOTE_PIN_LOW() GPIO_ClearValue(0, 1 << 26);
 
-#define MR3_INT (1 << 3)
-#define PWMSEL2 (1 << 2)
-#define PWMSEL3 (1 << 3)
-#define PWMSEL4 (1 << 4)
-#define PWMSEL5 (1 << 5)
-#define PWMSEL6 (1 << 6)
-#define PWMENA1 (1 << 9)
-#define PWMENA2 (1 << 10)
-#define PWMENA3 (1 << 11)
-#define PWMENA4 (1 << 12)
-#define PWMENA5 (1 << 13)
 #define PWMENA6 (1 << 14)
-#define LER0_EN (1 << 0)
-#define LER1_EN (1 << 1)
-#define LER2_EN (1 << 2)
-#define LER3_EN (1 << 3)
-#define LER4_EN (1 << 4)
-#define LER5_EN (1 << 5)
 #define LER6_EN (1 << 6)
 #define PWMMR0I (1 << 0)
 #define TCR_CNT_EN 0x00000001
@@ -68,10 +58,6 @@ static void pwm_start(void)
     LPC_PWM1->PCR = PWMENA6;
     LPC_PWM1->TCR = TCR_CNT_EN | TCR_PWM_EN; /* counter enable, PWM enable */
 }
-
-uint32_t RTC_godziny = 12;
-uint32_t RTC_minuty = 59;
-uint32_t RTC_sekundy = 55;
 
 static void setUpRTC(void)
 {
@@ -136,24 +122,24 @@ static void playNote(uint32_t note, uint32_t durationMs)
     }
 }
 
-#define PWMPRESCALE (25 - 1)
-#define TIMPRESCALE (25000 - 1)
-
 static uint32_t getNote(uint8_t ch)
 {
-    if (ch >= (uint32_t)'A' && ch <= (uint32_t)'G')
+    if (ch >= (uint32_t)'A' && ch <= (uint32_t)'G'){
         return notes[ch - (uint32_t)'A'];
+    }
 
-    if (ch >= (uint32_t)'a' && ch <= (uint32_t)'g')
+    if (ch >= (uint32_t)'a' && ch <= (uint32_t)'g'){
         return notes[ch - (uint32_t)'a' + (uint32_t)7];
+    }
 
     return 0;
 }
 
 static uint32_t getDuration(uint8_t ch)
 {
-    if (ch < (uint32_t)'0' || ch > (uint32_t)'9')
+    if (ch < (uint32_t)'0' || ch > (uint32_t)'9'){
         return 400;
+    }
 
     /* number of ms */
 
@@ -193,11 +179,13 @@ static void playSong(uint8_t *song)
     while (*song != '\0')
     {
         note = getNote(*song++);
-        if (*song == '\0')
+        if (*song == '\0'){
             break;
+        }
         dur = getDuration(*song++);
-        if (*song == '\0')
+        if (*song == '\0'){
             break;
+        }
         pause = getPause(*song++);
 
         playNote(note, dur);
@@ -211,7 +199,7 @@ static void intToString(int value, uint8_t *pBuf, uint32_t len, uint32_t base)
     static const char *pAscii = "0123456789abcdefghijklmnopqrstuvwxyz";
     int pos = 0;
 
-    int tmpValue = value;
+    int tmpValue = value;sTic
 
     // the buffer must not be null and at least have a length of 2 to handle one
     // digit and null-terminator
@@ -258,11 +246,6 @@ static void intToString(int value, uint8_t *pBuf, uint32_t len, uint32_t base)
     } while (value > 0);
 
     return;
-}
-
-void SysTick_Handler(void)
-{
-    msTicks++;
 }
 
 static void init_ssp(void)
@@ -359,12 +342,12 @@ static void init_adc(void)
     ADC_ChannelCmd(LPC_ADC, ADC_CHANNEL_0, ENABLE);
 }
 
-int how_many_seconds(int h, int m, int s)
+static int how_many_seconds(int h, int m, int s)
 {
     return ((h * 60 * 60) + (m * 60) + s);
 }
-int32_t t = 10;
-void show_time()
+
+static void show_time(void)
 {
     int minutes = t / 60;
     int sec = t % 60;
@@ -372,24 +355,24 @@ void show_time()
     char seconds_string[2];
     if (t / 60 < 10)
     {
-        snprintf(minutes_string, 12, "0%d", minutes);
+        x = snprintf(minutes_string, 12, "0%d", minutes);
     }
     else
     {
-        snprintf(minutes_string, 12, "%d", minutes);
+        x = snprintf(minutes_string, 12, "%d", minutes);
     }
 
     if (t % 60 < 10)
     {
-        snprintf(seconds_string, 12, "0%d", sec);
+        x = snprintf(seconds_string, 12, "0%d", sec);
     }
     else
     {
-        snprintf(seconds_string, 12, "%d", sec);
+        x = snprintf(seconds_string, 12, "%d", sec);
     }
 
     char time_string[12];
-    snprintf(time_string, 12, "%s:%s", minutes_string, seconds_string);
+    x = snprintf(time_string, 12, "%s:%s", minutes_string, seconds_string);
     //				oled_fillRect((1+7*6),1, 80, 8, OLED_COLOR_WHITE);
     oled_putString((1 + 7 * 6), 1, time_string, OLED_COLOR_BLACK, OLED_COLOR_WHITE);
 }
@@ -398,7 +381,7 @@ int main(void)
 {
 
     uint8_t state = 0;
-    uint8_t ch = '0';
+    char ch = '0';
     uint8_t btn1 = 0;
     uint32_t lux = 0;
     int min_motor = 300;
@@ -449,7 +432,7 @@ int main(void)
         joy = joystick_read();
 
         btn1 = ((GPIO_ReadValue(0) >> 4) & 0x01);
-        if (btn1 == 0 && isOnCooldown <= 0)
+        if ((int)btn1 == 0 && isOnCooldown <= 0)
         {
             offset_value += 100;
             ledsOn = ledsOn << 1;
@@ -460,7 +443,9 @@ int main(void)
                 offset_value = min_motor;
             }
             if (isOn)
+            {
                 pwm_set(offset_value);
+            }
             pca9532_setLeds(ledsOn, 255);
             isOnCooldown = 25000;
         }
@@ -539,9 +524,18 @@ int main(void)
             }
 
             if (ch > '9')
+            {
                 ch = '0';
+            }
             else if (ch < '0')
+            {
                 ch = '9';
+            }
+            else
+            {
+
+            }
+
 
             led7seg_setChar(ch, FALSE);
         }
@@ -565,7 +559,7 @@ int main(void)
             ////			   oled_fillRect((1+7*6),10, 80, 17, OLED_COLOR_WHITE);
             //			   oled_putString((1+7*6),10, buf, OLED_COLOR_BLACK, OLED_COLOR_WHITE);
 
-            snprintf(buf, 12, "%02d:%02d:%02d", RTC_godziny, RTC_minuty, RTC_sekundy);
+            x = snprintf(buf, 12, "%02d:%02d:%02d", RTC_godziny, RTC_minuty, RTC_sekundy);
             //		    	oled_fillRect((1+7*6),19, 80, 28, OLED_COLOR_WHITE);
             oled_putString((1 + 7 * 3), 50, buf, OLED_COLOR_BLACK, OLED_COLOR_WHITE);
 
@@ -583,7 +577,9 @@ int main(void)
                     ;
                     pwm_set(min_motor);
                     if (lux > 30)
+                    {
                         playSong(*songs);
+                    }
                 }
                 t = timestamp - how_many_seconds(RTC_godziny, RTC_minuty, RTC_sekundy);
             }
