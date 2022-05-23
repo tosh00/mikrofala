@@ -27,7 +27,7 @@ static uint32_t RTC_sekundy = 55;
 #define NOTE_PIN_HIGH() GPIO_SetValue(0, ((uint32_t)1 << 26));
 #define NOTE_PIN_LOW() GPIO_ClearValue(0, ((uint32_t)1 << 26));
 
-#define PWMENA6 ((uint32_t)1 << 14)
+#define PWMENA6 ((uint8_t)1 << 14)
 #define LER6_EN ((uint8_t)1 << 6)
 #define PWMMR0I ((uint8_t)1 << 0)
 #define TCR_CNT_EN 0x00000001
@@ -54,7 +54,7 @@ static void pwm_set(uint32_t offset)
 static void pwm_start(void)
 {
     /* All single edge, all enable */
-    LPC_PWM1->PCR = PWMENA6;
+    LPC_PWM1->PCR = (uint32_t)PWMENA6;
     LPC_PWM1->TCR = TCR_CNT_EN | TCR_PWM_EN; /* counter enable, PWM enable */
 }
 
@@ -89,9 +89,6 @@ static uint32_t notes[] = {
     1275, // g - 784 Hz
 };
 
-static const char *songs[] = {
-    "E2,E2,E2,E2",
-};
 
 static void playNote(uint32_t note, uint32_t durationMs)
 {
@@ -166,7 +163,6 @@ static uint32_t getPause(uint8_t ch)
     	break;
     default:
     	res = 5;
-        break;
     }
 
     return res;
@@ -327,7 +323,7 @@ static void show_time(void)
         x = snprintf(seconds_string, 12, "%d", sec);
     }
 
-    char time_string[12];
+    uint8_t time_string[12];
     x = snprintf(time_string, 12, "%s:%s", minutes_string, seconds_string);
     //				oled_fillRect((1+7*6),1, 80, 8, OLED_COLOR_WHITE);
     oled_putString((1 + 7 * 6), 1, time_string, OLED_COLOR_BLACK, OLED_COLOR_WHITE);
@@ -372,7 +368,7 @@ int main(void)
     uint8_t joy = 0;
     int isOn = 0;
 
-    int isOnCooldown = 0;
+    int inputCooldown = 0;
     int timerCooldown = 0;
     uint16_t ledsOn = 1;
 
@@ -388,7 +384,7 @@ int main(void)
         joy = joystick_read();
 
         btn1 = ((GPIO_ReadValue(0) >> 4) & 0x01);
-        if ((int)btn1 == 0 && isOnCooldown <= 0)
+        if ((int)btn1 == 0 && inputCooldown <= 0)
         {
             offset_value += 100;
             ledsOn = ledsOn << 1;
@@ -403,10 +399,10 @@ int main(void)
                 pwm_set(offset_value);
             }
             pca9532_setLeds(ledsOn, 255);
-            isOnCooldown = 25000;
+            inputCooldown = 25000;
         }
 
-        if ((joy & JOYSTICK_CENTER) != 0 && isOnCooldown <= 0)
+        if ((joy & JOYSTICK_CENTER) != 0 && inputCooldown <= 0)
         {
             if (isOn != 0)
             {
@@ -425,11 +421,11 @@ int main(void)
                 }
             }
 
-            isOnCooldown = 100000;
+            inputCooldown = 100000;
         }
         if (isOn == 0)
         {
-            if ((joy & JOYSTICK_LEFT) != 0 && isOnCooldown <= 0)
+            if ((joy & JOYSTICK_LEFT) != 0 && inputCooldown <= 0)
             {
                 if (t > 0)
                 {
@@ -437,34 +433,34 @@ int main(void)
                 }
 
                 show_time();
-                isOnCooldown = 25000;
+                inputCooldown = 25000;
             }
-            if ((joy & JOYSTICK_RIGHT) != 0 && isOnCooldown <= 0)
+            if ((joy & JOYSTICK_RIGHT) != 0 && inputCooldown <= 0)
             {
                 t++;
                 show_time();
-                isOnCooldown = 25000;
+                inputCooldown = 25000;
             }
 
-            if ((joy & JOYSTICK_DOWN) != 0 && isOnCooldown <= 0)
+            if ((joy & JOYSTICK_DOWN) != 0 && inputCooldown <= 0)
             {
                 if (t >= 10)
                 {
                     t -= 10;
                 }
                 show_time();
-                isOnCooldown = 25000;
+                inputCooldown = 25000;
             }
-            if ((joy & JOYSTICK_UP) != 0 && isOnCooldown <= 0)
+            if ((joy & JOYSTICK_UP) != 0 && inputCooldown <= 0)
             {
                 t += 10;
                 show_time();
-                isOnCooldown = 25000;
+                inputCooldown = 25000;
             }
         }
-        if (isOnCooldown > 0)
+        if (inputCooldown > 0)
         {
-            isOnCooldown--;
+            inputCooldown--;
         }
         state = rotary_read();
         if (state != ROTARY_WAIT && isOn != 1)
@@ -530,7 +526,7 @@ int main(void)
                     pwm_set(min_motor);
                     if (lux > (uint32_t)30)
                     {
-                        playSong(*songs);
+                        playSong((uint8_t *)"E2,E2,E2,E2");
                     }
                 }
                 t = timestamp - how_many_seconds(RTC_godziny, RTC_minuty, RTC_sekundy);
