@@ -251,13 +251,13 @@ static void init_i2c(void)
 
 static void init_sound(void)
 {
-    GPIO_SetDir(2, (uint32_t)1 << 0, (uint8_t)1);
-    GPIO_SetDir(2, (uint32_t)1 << 1, (uint8_t)1);
+    GPIO_SetDir(2, (uint32_t)1 << 0, 1);
+    GPIO_SetDir(2, (uint32_t)1 << 1, 1);
 
-    GPIO_SetDir(0, (uint32_t)1 << 27, (uint8_t)1);
-    GPIO_SetDir(0, (uint32_t)1 << 28, (uint8_t)1);
-    GPIO_SetDir(2, (uint32_t)1 << 13, (uint8_t)1);
-    GPIO_SetDir(0, (uint32_t)1 << 26, (uint8_t)1);
+    GPIO_SetDir(0, (uint32_t)1 << 27, 1);
+    GPIO_SetDir(0, (uint32_t)1 << 28, 1);
+    GPIO_SetDir(2, (uint32_t)1 << 13, 1);
+    GPIO_SetDir(0, (uint32_t)1 << 26, 1);
 
     GPIO_ClearValue(0, (uint32_t)1 << 27); // LM4811-clk
     GPIO_ClearValue(0, (uint32_t)1 << 28); // LM4811-up/dn
