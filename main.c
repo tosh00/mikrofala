@@ -24,8 +24,8 @@ static uint32_t RTC_godziny = 12;
 static uint32_t RTC_minuty = 59;
 static uint32_t RTC_sekundy = 55;
 
-#define NOTE_PIN_HIGH() GPIO_SetValue(0, (uint8_t)1 << 26);
-#define NOTE_PIN_LOW() GPIO_ClearValue(0, (uint8_t)1 << 26);
+#define NOTE_PIN_HIGH() GPIO_SetValue(0, (uint32_t)1 << 26);
+#define NOTE_PIN_LOW() GPIO_ClearValue(0, (uint32_t)1 << 26);
 
 #define PWMENA6 ((uint8_t)1 << 14)
 #define LER6_EN ((uint8_t)1 << 6)
@@ -37,7 +37,7 @@ static uint32_t RTC_sekundy = 55;
 
 static void pwm_init(uint32_t cycle)
 {
-    LPC_PINCON->PINSEL4 |= ((uint8_t)0x01 << 10);
+    LPC_PINCON->PINSEL4 |= ((uint16_t)0x01 << 10);
     LPC_PWM1->TCR = TCR_RESET;
     LPC_PWM1->PR = 0x00;
     LPC_PWM1->MCR = PWMMR0I;
@@ -54,7 +54,7 @@ static void pwm_set(uint32_t offset)
 static void pwm_start(void)
 {
     /* All single edge, all enable */
-    LPC_PWM1->PCR = PWMENA6;
+    LPC_PWM1->PCR = (uint32_t)PWMENA6;
     LPC_PWM1->TCR = TCR_CNT_EN | TCR_PWM_EN; /* counter enable, PWM enable */
 }
 
@@ -251,17 +251,17 @@ static void init_i2c(void)
 
 static void init_sound(void)
 {
-    GPIO_SetDir(2, (uint8_t)1 << 0, 1);
-    GPIO_SetDir(2, (uint8_t)1 << 1, 1);
+    GPIO_SetDir(2, (uint32_t)1 << 0, (uint8_t)1);
+    GPIO_SetDir(2, (uint32_t)1 << 1, (uint8_t)1);
 
-    GPIO_SetDir(0, (uint8_t)1 << 27, 1);
-    GPIO_SetDir(0, (uint8_t)1 << 28, 1);
-    GPIO_SetDir(2, (uint8_t)1 << 13, 1);
-    GPIO_SetDir(0, (uint8_t)1 << 26, 1);
+    GPIO_SetDir(0, (uint32_t)1 << 27, (uint8_t)1);
+    GPIO_SetDir(0, (uint32_t)1 << 28, (uint8_t)1);
+    GPIO_SetDir(2, (uint32_t)1 << 13, (uint8_t)1);
+    GPIO_SetDir(0, (uint32_t)1 << 26, (uint8_t)1);
 
-    GPIO_ClearValue(0, (uint8_t)1 << 27); // LM4811-clk
-    GPIO_ClearValue(0, (uint8_t)1 << 28); // LM4811-up/dn
-    GPIO_ClearValue(2, (uint8_t)1 << 13); // LM4811-shutdn
+    GPIO_ClearValue(0, (uint32_t)1 << 27); // LM4811-clk
+    GPIO_ClearValue(0, (uint32_t)1 << 28); // LM4811-up/dn
+    GPIO_ClearValue(2, (uint32_t)1 << 13); // LM4811-shutdn
 }
 
 static void init_adc(void)
