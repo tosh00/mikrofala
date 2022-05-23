@@ -24,8 +24,8 @@ static uint32_t RTC_godziny = 12;
 static uint32_t RTC_minuty = 59;
 static uint32_t RTC_sekundy = 55;
 
-#define NOTE_PIN_HIGH() GPIO_SetValue(0, (uint32_t)(1 << 26));
-#define NOTE_PIN_LOW() GPIO_ClearValue(0, (uint32_t)(1 << 26));
+#define NOTE_PIN_HIGH() GPIO_SetValue(0, ((uint32_t)1 << 26));
+#define NOTE_PIN_LOW() GPIO_ClearValue(0, ((uint32_t)1 << 26));
 
 #define PWMENA6 ((uint8_t)1 << 14)
 #define LER6_EN ((uint8_t)1 << 6)
@@ -123,43 +123,48 @@ static void playNote(uint32_t note, uint32_t durationMs)
 
 static uint32_t getNote(uint8_t ch)
 {
+	uint32_t res;
     if (ch >= (uint32_t)'A' && ch <= (uint32_t)'G'){
-        return notes[ch - (uint32_t)'A'];
+    	res = notes[ch - (uint32_t)'A'];
     }
 
     if (ch >= (uint32_t)'a' && ch <= (uint32_t)'g'){
-        return notes[ch - (uint32_t)'a' + (uint32_t)7];
+    	res = notes[ch - (uint32_t)'a' + (uint32_t)7];
     }
 
-    return 0;
+    return res;
 }
 
 static uint32_t getDuration(uint8_t ch)
 {
+	uint32_t res;
     if (ch < (uint32_t)'0' || ch > (uint32_t)'9'){
-        return 400;
+        res = 400;
     }
 
     /* number of ms */
-
-    return (ch - (uint32_t)'0') * (uint32_t)200;
+    res = (ch - (uint32_t)'0') * (uint32_t)200;
+    return res;
 }
 
 static uint32_t getPause(uint8_t ch)
 {
+	uint32_t res;
     switch ((int)ch)
     {
     case '+':
-        return 0;
+    	res = 0;
     case ',':
-        return 5;
+    	res = 5;
     case '.':
-        return 20;
+    	res = 20;
     case '_':
-        return 30;
+    	res = 30;
     default:
-        return 5;
+    	res = 5;
     }
+
+    return res;
 }
 
 static void playSong(uint8_t *song)
@@ -491,7 +496,7 @@ int main(void)
             lux = light_read();
 
             //		   oled_clearScreen(OLED_COLOR_WHITE);
-
+//            uint8_t text[7] = "Timer :";
             oled_putString(1, 1, (uint8_t *)"Timer :", OLED_COLOR_BLACK, OLED_COLOR_WHITE);
             //		   oled_putString(1,10,  (uint8_t*)"Moc   :", OLED_COLOR_BLACK, OLED_COLOR_WHITE);
             //		   oled_putString(1,19,  (uint8_t*)"Czas  :", OLED_COLOR_BLACK, OLED_COLOR_WHITE);
