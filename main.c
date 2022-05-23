@@ -154,12 +154,16 @@ static uint32_t getPause(uint8_t ch)
     {
     case '+':
     	res = 0;
+    	break;
     case ',':
     	res = 5;
+    	break;
     case '.':
     	res = 20;
+    	break;
     case '_':
     	res = 30;
+    	break;
     default:
     	res = 5;
     }
