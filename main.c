@@ -27,7 +27,7 @@ static uint32_t RTC_sekundy = 55;
 #define NOTE_PIN_HIGH() GPIO_SetValue(0, ((uint32_t)1 << 26));
 #define NOTE_PIN_LOW() GPIO_ClearValue(0, ((uint32_t)1 << 26));
 
-#define PWMENA6 ((uint8_t)1 << 14)
+#define PWMENA6 ((uint32_t)1 << 14)
 #define LER6_EN ((uint8_t)1 << 6)
 #define PWMMR0I ((uint8_t)1 << 0)
 #define TCR_CNT_EN 0x00000001
@@ -54,7 +54,7 @@ static void pwm_set(uint32_t offset)
 static void pwm_start(void)
 {
     /* All single edge, all enable */
-    LPC_PWM1->PCR = (uint32_t)PWMENA6;
+    LPC_PWM1->PCR = PWMENA6;
     LPC_PWM1->TCR = TCR_CNT_EN | TCR_PWM_EN; /* counter enable, PWM enable */
 }
 
@@ -166,6 +166,7 @@ static uint32_t getPause(uint8_t ch)
     	break;
     default:
     	res = 5;
+        break;
     }
 
     return res;
