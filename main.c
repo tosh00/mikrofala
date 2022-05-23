@@ -88,15 +88,19 @@ static uint32_t notes[] = {
     1275, // g - 784 Hz
 };
 
-static uint8_t ch7seg = '0';
+static uint8_t ch7seg = (uint8_t)'0';
 static void change7Seg(void)
 {
-        if (ch7seg > '9'){
-            ch7seg = '0';
+        if (ch7seg > (uint8_t)'9')
+        {
+            ch7seg = (uint8_t)'0';
         }
-        else if (ch7seg < '0'){
-            ch7seg = '9';
+        else if (ch7seg < (uint8_t)'0')
+        {
+            ch7seg = (uint8_t)'9';
         }
+        else
+        {}
 
         led7seg_setChar(ch7seg, FALSE);
 }
