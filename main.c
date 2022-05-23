@@ -25,12 +25,12 @@ static uint32_t RTC_godziny = 12;
 static uint32_t RTC_minuty = 59;
 static uint32_t RTC_sekundy = 55;
 
-#define NOTE_PIN_HIGH() GPIO_SetValue(0, 1 << 26);
-#define NOTE_PIN_LOW() GPIO_ClearValue(0, 1 << 26);
+#define NOTE_PIN_HIGH() GPIO_SetValue(0, (uint8_t)1 << 26);
+#define NOTE_PIN_LOW() GPIO_ClearValue(0, (uint8_t)1 << 26);
 
-#define PWMENA6 (1 << 14)
-#define LER6_EN (1 << 6)
-#define PWMMR0I (1 << 0)
+#define PWMENA6 ((uint8_t)1 << 14)
+#define LER6_EN ((uint8_t)1 << 6)
+#define PWMMR0I ((uint8_t)1 << 0)
 #define TCR_CNT_EN 0x00000001
 #define TCR_RESET 0x00000002
 #define TCR_PWM_EN 0x00000008
@@ -38,7 +38,7 @@ static uint32_t RTC_sekundy = 55;
 
 static void pwm_init(uint32_t cycle)
 {
-    LPC_PINCON->PINSEL4 |= (0x01 << 10);
+    LPC_PINCON->PINSEL4 |= ((uint8_t)0x01 << 10);
     LPC_PWM1->TCR = TCR_RESET;
     LPC_PWM1->PR = 0x00;
     LPC_PWM1->MCR = PWMMR0I;
@@ -194,6 +194,60 @@ static void playSong(uint8_t *song)
     }
 }
 
+static void intToString(int value, uint8_t *pBuf, uint32_t len, uint32_t base)
+{
+    static const char *pAscii = "0123456789abcdefghijklmnopqrstuvwxyz";
+    int pos = 0;
+
+    int tmpValue = value;sTic
+
+    // the buffer must not be null and at least have a length of 2 to handle one
+    // digit and null-terminator
+    if (pBuf == NULL || len < (uint32_t)2)
+    {
+        return;
+    }
+
+    // a valid base cannot be less than 2 or larger than 36
+    // a base value of 2 means binary representation. A value of 1 would mean only zeros
+    // a base larger than 36 can only be used if a larger alphabet were used.
+    if (base < (uint32_t)2 || base > (uint32_t)36)
+    {
+        return;
+    }
+
+    // negative value
+    if (value < 0)
+    {
+        tmpValue = -tmpValue;
+        value = -value;
+        pBuf[(uint32_t)pos++] = '-';
+    }
+
+    // calculate the required length of the buffer
+    do
+    {
+        pos++;
+        tmpValue /= base;
+    } while (tmpValue > 0);
+
+    if ((uint32_t)pos > len)
+    {
+        // the len parameter is invalid.
+        return;
+    }
+
+    pBuf[pos] = '\0';
+
+    do
+    {
+        pBuf[--pos] = pAscii[value % base];
+        (uint32_t)value /= base;
+    } while (value > 0);
+
+    return;
+}
+
 static void init_ssp(void)
 {
     PINSEL_CFG_Type PinCfg;
@@ -251,17 +305,17 @@ static void init_i2c(void)
 
 static void init_sound(void)
 {
-    GPIO_SetDir(2, 1 << 0, 1);
-    GPIO_SetDir(2, 1 << 1, 1);
+    GPIO_SetDir(2, (uint8_t)1 << 0, 1);
+    GPIO_SetDir(2, (uint8_t)1 << 1, 1);
 
-    GPIO_SetDir(0, 1 << 27, 1);
-    GPIO_SetDir(0, 1 << 28, 1);
-    GPIO_SetDir(2, 1 << 13, 1);
-    GPIO_SetDir(0, 1 << 26, 1);
+    GPIO_SetDir(0, (uint8_t)1 << 27, 1);
+    GPIO_SetDir(0, (uint8_t)1 << 28, 1);
+    GPIO_SetDir(2, (uint8_t)1 << 13, 1);
+    GPIO_SetDir(0, (uint8_t)1 << 26, 1);
 
-    GPIO_ClearValue(0, 1 << 27); // LM4811-clk
-    GPIO_ClearValue(0, 1 << 28); // LM4811-up/dn
-    GPIO_ClearValue(2, 1 << 13); // LM4811-shutdn
+    GPIO_ClearValue(0, (uint8_t)1 << 27); // LM4811-clk
+    GPIO_ClearValue(0, (uint8_t)1 << 28); // LM4811-up/dn
+    GPIO_ClearValue(2, (uint8_t)1 << 13); // LM4811-shutdn
 }
 
 static void init_adc(void)
@@ -508,10 +562,6 @@ int main(void)
             x = snprintf(buf, 12, "%02d:%02d:%02d", RTC_godziny, RTC_minuty, RTC_sekundy);
             //		    	oled_fillRect((1+7*6),19, 80, 28, OLED_COLOR_WHITE);
             oled_putString((1 + 7 * 3), 50, buf, OLED_COLOR_BLACK, OLED_COLOR_WHITE);
-
-            //		    	snprintf(buf, 12, "%d", lux);
-            //		    	oled_fillRect((1+7*6),28, 80, 37, OLED_COLOR_WHITE);
-            //		    	oled_putString((1+7*6),28, buf, OLED_COLOR_BLACK, OLED_COLOR_WHITE);
 
             if (isOn == 1)
             {
