@@ -24,8 +24,8 @@ static uint32_t RTC_godziny = 12;
 static uint32_t RTC_minuty = 59;
 static uint32_t RTC_sekundy = 55;
 
-#define NOTE_PIN_HIGH() GPIO_SetValue(0, (uint32_t)1 << 26);
-#define NOTE_PIN_LOW() GPIO_ClearValue(0, (uint32_t)1 << 26);
+#define NOTE_PIN_HIGH() GPIO_SetValue(0, (uint32_t)(1 << 26));
+#define NOTE_PIN_LOW() GPIO_ClearValue(0, (uint32_t)(1 << 26));
 
 #define PWMENA6 ((uint8_t)1 << 14)
 #define LER6_EN ((uint8_t)1 << 6)
@@ -388,7 +388,7 @@ int main(void)
                 ledsOn = 1;
                 offset_value = min_motor;
             }
-            if (isOn)
+            if (isOn != 0)
             {
                 pwm_set(offset_value);
             }
@@ -398,7 +398,7 @@ int main(void)
 
         if ((joy & JOYSTICK_CENTER) != 0 && isOnCooldown <= 0)
         {
-            if (isOn)
+            if (isOn != 0)
             {
                 rgb_setLeds(RGB_RED | RGB_GREEN | 0);
                 isOn = 0;
@@ -417,7 +417,7 @@ int main(void)
 
             isOnCooldown = 100000;
         }
-        if (!isOn)
+        if (isOn == 0)
         {
             if ((joy & JOYSTICK_LEFT) != 0 && isOnCooldown <= 0)
             {
