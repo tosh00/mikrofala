@@ -15,7 +15,6 @@
 #include "oled.h"
 #include "light.h"
 
-static uint32_t msTicks = 0;
 static uint8_t buf[10];
 static int x = 0;
 // Initial value passed to timer
@@ -194,59 +193,6 @@ static void playSong(uint8_t *song)
     }
 }
 
-static void intToString(int value, uint8_t *pBuf, uint32_t len, uint32_t base)
-{
-    static const char *pAscii = "0123456789abcdefghijklmnopqrstuvwxyz";
-    int pos = 0;
-
-    int tmpValue = value;sTic
-
-    // the buffer must not be null and at least have a length of 2 to handle one
-    // digit and null-terminator
-    if (pBuf == NULL || len < (uint32_t)2)
-    {
-        return;
-    }
-
-    // a valid base cannot be less than 2 or larger than 36
-    // a base value of 2 means binary representation. A value of 1 would mean only zeros
-    // a base larger than 36 can only be used if a larger alphabet were used.
-    if (base < (uint32_t)2 || base > (uint32_t)36)
-    {
-        return;
-    }
-
-    // negative value
-    if (value < 0)
-    {
-        tmpValue = -tmpValue;
-        value = -value;
-        pBuf[(uint32_t)pos++] = '-';
-    }
-
-    // calculate the required length of the buffer
-    do
-    {
-        pos++;
-        tmpValue /= base;
-    } while (tmpValue > 0);
-
-    if ((uint32_t)pos > len)
-    {
-        // the len parameter is invalid.
-        return;
-    }
-
-    pBuf[pos] = '\0';
-
-    do
-    {
-        pBuf[--pos] = pAscii[value % base];
-        (uint32_t)value /= base;
-    } while (value > 0);
-
-    return;
-}
 
 static void init_ssp(void)
 {
@@ -436,8 +382,8 @@ int main(void)
         {
             offset_value += 100;
             ledsOn = ledsOn << 1;
-            ledsOn += 1;
-            if (ledsOn > 255)
+            ledsOn += (uint8_t)1;
+            if (ledsOn > (uint8_t)255)
             {
                 ledsOn = 1;
                 offset_value = min_motor;
@@ -572,7 +518,7 @@ int main(void)
                     isOn = 0;
                     ;
                     pwm_set(min_motor);
-                    if (lux > 30)
+                    if (lux > (uint32_t)30)
                     {
                         playSong(*songs);
                     }
