@@ -8,7 +8,6 @@
 #include "lpc17xx.h"
 
 #include "led7seg.h"
-#include "rotary.h"
 #include "pca9532.h"
 #include "joystick.h"
 #include "rgb.h"
@@ -89,6 +88,18 @@ static uint32_t notes[] = {
     1275, // g - 784 Hz
 };
 
+static uint8_t ch7seg = '0';
+static void change7Seg()
+{
+
+
+        if (ch7seg > '9')
+            ch7seg = '0';
+        else if (ch7seg < '0')
+            ch7seg = '9';
+
+        led7seg_setChar(ch7seg, FALSE);
+}
 
 static void playNote(uint32_t note, uint32_t durationMs)
 {
@@ -340,7 +351,6 @@ int main(void)
     int timestamp = 0;
     int offset_value = min_motor;
 
-    rotary_init();
     led7seg_init();
 
     pca9532_init();
@@ -368,8 +378,6 @@ int main(void)
     uint8_t joy = 0;
     int isOn = 0;
 
-    int inputCooldown = 0;
-    int timerCooldown = 0;
     uint16_t ledsOn = 1;
 
     led7seg_setChar(ch, FALSE);
@@ -384,7 +392,7 @@ int main(void)
         joy = joystick_read();
 
         btn1 = ((GPIO_ReadValue(0) >> 4) & 0x01);
-        if ((int)btn1 == 0 && inputCooldown <= 0)
+        if ((int)btn1 == 0)
         {
             offset_value += 100;
             ledsOn = ledsOn << 1;
@@ -399,10 +407,9 @@ int main(void)
                 pwm_set(offset_value);
             }
             pca9532_setLeds(ledsOn, 255);
-            inputCooldown = 25000;
         }
 
-        if ((joy & JOYSTICK_CENTER) != 0 && inputCooldown <= 0)
+        if ((joy & JOYSTICK_CENTER) != 0)
         {
             if (isOn != 0)
             {
@@ -421,11 +428,10 @@ int main(void)
                 }
             }
 
-            inputCooldown = 100000;
         }
         if (isOn == 0)
         {
-            if ((joy & JOYSTICK_LEFT) != 0 && inputCooldown <= 0)
+            if ((joy & JOYSTICK_LEFT) != 0)
             {
                 if (t > 0)
                 {
@@ -433,67 +439,27 @@ int main(void)
                 }
 
                 show_time();
-                inputCooldown = 25000;
             }
-            if ((joy & JOYSTICK_RIGHT) != 0 && inputCooldown <= 0)
+            if ((joy & JOYSTICK_RIGHT) != 0)
             {
                 t++;
                 show_time();
-                inputCooldown = 25000;
             }
 
-            if ((joy & JOYSTICK_DOWN) != 0 && inputCooldown <= 0)
+            if ((joy & JOYSTICK_DOWN) != 0 )
             {
-                if (t >= 10)
-                {
-                    t -= 10;
-                }
-                show_time();
-                inputCooldown = 25000;
+            	ch7seg--;
+                change7Seg();
             }
-            if ((joy & JOYSTICK_UP) != 0 && inputCooldown <= 0)
+            if ((joy & JOYSTICK_UP) != 0 )
             {
-                t += 10;
-                show_time();
-                inputCooldown = 25000;
+            	ch7seg++;
+                change7Seg();
             }
         }
-        if (inputCooldown > 0)
-        {
-            inputCooldown--;
-        }
-        state = rotary_read();
-        if (state != ROTARY_WAIT && isOn != 1)
-        {
-
-            if (state == ROTARY_RIGHT)
-            {
-                ch += 1;
-            }
-            else
-            {
-                ch -= 1;
-            }
-
-            if (ch > '9')
-            {
-                ch = '0';
-            }
-            else if (ch < '0')
-            {
-                ch = '9';
-            }
-            else
-            {
-
-            }
 
 
-            led7seg_setChar(ch, FALSE);
-        }
 
-        if (timerCooldown == 0)
-        {
             lux = light_read();
 
             //		   oled_clearScreen(OLED_COLOR_WHITE);
@@ -532,11 +498,7 @@ int main(void)
                 t = timestamp - how_many_seconds(RTC_godziny, RTC_minuty, RTC_sekundy);
             }
             /* delay */
-            timerCooldown = 25000;
-        }
-        if (timerCooldown > 0)
-        {
-            timerCooldown--;
-        }
+            Timer0_Wait(150);
+
     }
 }
